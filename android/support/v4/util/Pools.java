@@ -48,20 +48,20 @@ public final class Pools {
 
     /**
      * Interface for managing a pool of objects.
-     *
-     * @param <T> The pooled type.
+     * <p><p> 管理一个对象池的接口
+     * @param <T> The pooled type.池的大小
      */
     public interface Pool<T> {
 
         /**
-         * @return An instance from the pool if such, null otherwise.
+         * @return 从池中获取一个对象。如果池为空，则返回null
          */
         @Nullable
         T acquire();
 
         /**
          * Release an instance to the pool.
-         *
+         * <p><p>释放一个对象到池中
          * @param instance The instance to release.
          * @return Whether the instance was put in the pool.
          *
@@ -75,21 +75,21 @@ public final class Pools {
     }
 
     /**
-     * Simple (non-synchronized) pool of objects.
+     * 一个简单的对象池(非同步)。<p><p>Simple (non-synchronized) pool of objects.
      *
      * @param <T> The pooled type.
      */
     public static class SimplePool<T> implements Pool<T> {
-        private final Object[] mPool;
+        private final Object[] mPool;//对象池，被初始化后大小既定。
 
-        private int mPoolSize;
+        private int mPoolSize;//池子当前持有对象的数量
 
         /**
          * Creates a new instance.
-         *
+         * <p><p>构造一个对象池实例。
          * @param maxPoolSize The max pool size.
          *
-         * @throws IllegalArgumentException If the max pool size is less than zero.
+         * @throws IllegalArgumentException 如果maxPoolSize小于等于0.
          */
         public SimplePool(int maxPoolSize) {
             if (maxPoolSize <= 0) {
@@ -101,7 +101,7 @@ public final class Pools {
         @Override
         @SuppressWarnings("unchecked")
         public T acquire() {
-            if (mPoolSize > 0) {
+            if (mPoolSize > 0) {//如果池中数量大于0,取出最后一个。
                 final int lastPooledIndex = mPoolSize - 1;
                 T instance = (T) mPool[lastPooledIndex];
                 mPool[lastPooledIndex] = null;
@@ -113,17 +113,17 @@ public final class Pools {
 
         @Override
         public boolean release(@NonNull T instance) {
-            if (isInPool(instance)) {
+            if (isInPool(instance)) {//已经会收到池中了
                 throw new IllegalStateException("Already in the pool!");
             }
-            if (mPoolSize < mPool.length) {
+            if (mPoolSize < mPool.length) {//如果池还没满，放入池中
                 mPool[mPoolSize] = instance;
                 mPoolSize++;
                 return true;
             }
             return false;
         }
-
+        /** instance 是否在池中 */
         private boolean isInPool(@NonNull T instance) {
             for (int i = 0; i < mPoolSize; i++) {
                 if (mPool[i] == instance) {
@@ -135,9 +135,9 @@ public final class Pools {
     }
 
     /**
-     * Synchronized) pool of objects.
-     *
-     * @param <T> The pooled type.
+     * 同步的对象池。
+     * <p><p>Synchronized) pool of objects.
+     * @param <T> The pooled type.  对象池的类型
      */
     public static class SynchronizedPool<T> extends SimplePool<T> {
         private final Object mLock = new Object();
